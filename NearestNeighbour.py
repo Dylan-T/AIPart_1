@@ -1,28 +1,40 @@
-import numpy
-from scipy.spatial import distance
-import operator
+import math
 import sys
 
-"""Load the data"""
+"""Load the training data"""
 if len(sys.argv) > 1:
     trainingText = open(sys.argv[1], "r")
 else:
     trainingText = open("part1/iris-training.txt")
 
-trainingData = []
+trainingData = []  # in format [((vector), class), ((vector), class)...((vector), class)]
 for line in trainingText:
     tokens = line.split()
-    trainingData.append((numpy.array((float(tokens[0]), float(tokens[1]), float(tokens[2]), float(tokens[3]))), tokens[4])) #in format [((vector), class), ((vector), class)...((vector), class)]
+    trainingData.append((float(tokens[0]), float(tokens[1]), float(tokens[2]), float(tokens[3])), tokens[4])
 
+"""Find the dimension ranges"""
+rMax = [trainingData[0][0][0], trainingData[0][0][1], trainingData[0][0][2], trainingData[0][0][3]]
+rMin = [trainingData[0][0][0], trainingData[0][0][1], trainingData[0][0][2], trainingData[0][0][3]]
+r = []
+
+for f in trainingData:
+    for i in range(4):
+        if(f[0][i] > rMax[i]):
+            rMax[i] = f[0][i]
+        if (f[0][i] < rMin[i]):
+            rMin[i] = f[0][i]
+r = [rMax[0] - rMin[0], rMax[1] - rMin[1], rMax[2] - rMin[2], rMax[3] - rMin[3]]
+
+"""Load the testing data"""
 if len(sys.argv) > 1:
     testingText = open(sys.argv[2], "r")
 else:
     testingText = open("part1/iris-test.txt")
 
-testingData = []
+testingData = []  # in format [((vector), class), ((vector), class)...((vector), class)]
 for line in testingText:
     tokens = line.split()
-    testingData.append((numpy.array((float(tokens[0]), float(tokens[1]), float(tokens[2]), float(tokens[3]))), tokens[4])) #in format [((vector), class), ((vector), class)...((vector), class)]
+    testingData.append((float(tokens[0]), float(tokens[1]), float(tokens[2]), float(tokens[3])), tokens[4])
 
 """Initialise the value of k"""
 k = 5
@@ -34,9 +46,11 @@ for test in range(len(testingData)):
     """Calculate the distance between test data and each row of training data."""
     distances = []
     for train in range(len(trainingData)):
-        dist = numpy.linalg.norm(testingData[test][0]-trainingData[train][0])
-        distances.append([dist,trainingData[train][1]])
-
+        # Distance calculation
+        for i in range(4):
+            dist += (testingData[test][0][i] - trainingData[train][0][i])**2 / r[i]
+        dist = math.sqrt(dist)
+        distances.append([dist, trainingData[train][1]])
 
     """Sort the calculated distances in ascending order based on distance values"""
     distances.sort()
@@ -57,5 +71,5 @@ for test in range(len(testingData)):
 """write predictions to a txt file"""
 f=open("resultsK"+str(k)+".txt", "w+")
 for i in predictions:
-    f.write(i + "\n")
+    f.write(i.append("\n"))
 f.close()
