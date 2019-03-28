@@ -6,15 +6,13 @@ attributes = []
 
 
 class Instance:
-
     def __init__(self, category, values):
         self.category = category
         self.values = values
 
 
 class Node:
-
-    def __init__(self, left, right):
+    def __init__(self, a, left, right):
         self.left = left
         self.right = right
 
@@ -31,6 +29,7 @@ def readDataFile (fname):
     tempf = open(fname, "r")
     file = tempf.read().splitlines()
     tempf.close()
+
 
     global categories
     for token in file[0].split("\t"):
@@ -79,16 +78,31 @@ def buildTree(instances, attributes):
         # return LeafNode(categories[i], count/len(instances))
         return 0
     else:
+        minImpurity = 2
+        bestInstsTrue = []
+        bestInstsFalse = []
         for a in attributes:
             """separate instances into two sets depending on their value of the attribute"""
+            tInsts = []
+            fInsts = []
+            for i in instances:
+                if i.values[getAttributeIndex(a)]:
+                    tInsts.append(i)
+                else:
+                    fInsts.append(i)
 
             """Compute purity of each set"""
+            tImpurity = getImpurity(tInsts)
+            fImpurity = getImpurity(fInsts)
 
             """if weighted average purity of these sets is best so far"""
-            if True:
+            """WAP = P(nodei)*impurity(nodei)"""
+            waImp = (len(tInsts)/(len(tInsts) + len(fInsts)))*tImpurity + (len(fInsts)/(len(tInsts) + len(fInsts)))*fImpurity
+            if waImp < minImpurity:
+                minImpurity = waImp
                 bestAtt = a
-                bestInstsTrue = 0  # subset that is true
-                bestInstsFalse = 0  # subset that is false
+                bestInstsTrue = tInsts
+                bestInstsFalse = fInsts
         """Build subtrees using the remaining attributes"""
         attributes.remove(bestAtt)
         left = buildTree(bestInstsTrue, attributes)
@@ -96,34 +110,58 @@ def buildTree(instances, attributes):
     return Node(bestAtt, left, right)
 
 
+def getImpurity(instances):
+    """Count classes"""
+    m = 0
+    n = 0
+    for i in instances:
+        if i.category == 0:
+            m += 1
+        if i.category == 1:
+            n += 1
+    return (m*n)/(m+n)**2
+
+
 def evaluateInstance(inst, root):
     if isinstance(root, LeafNode):
         return root.c
     else:
-        global attributes
-        for i in range(len(attributes)):
-            if attributes[i] == root.attribute:
-                break
+        i = getAttributeIndex(root.a)
         if inst.values[i]:
             evaluateInstance(inst, root.left)
         else:
             evaluateInstance(inst, root.right)
 
 
+def getAttributeIndex(attribute):
+    global attributes
+    for i in range(len(attributes)):
+        if attributes[i] == attribute:
+            return i
+
+
+"""Read training data"""
 trainInstances = readDataFile("part2/golf-training.dat")
+
+"""Build the tree"""
 dTree = buildTree(trainInstances, attributes)
 
-testInstances = readDataFile("part2/golf-test.dat")
+"""Read testing data"""
+tempf = open("part2/golf-test.dat", "r")
+file = tempf.read().splitlines()
+tempf.close()
+testInstances = readInstances(file)
 
+"""evaluate test data using decision tree"""
 predictions = []
 correct = 0
-# apply tests to tree
 for instance in testInstances:
     p = evaluateInstance(instance, dTree)
     if p == instance.category:
         correct += 1
     predictions.append(p)
 
+"""Output the results"""
 file = open("result.txt", "w")
 for pred in predictions:
     file.write(categories[pred] + "\n")
