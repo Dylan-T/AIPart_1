@@ -2,7 +2,9 @@ import sys
 
 """Global fields"""
 categories = []
+allAttributes = []
 attributes = []
+allInstances = []
 
 
 class Instance:
@@ -13,6 +15,7 @@ class Instance:
 
 class Node:
     def __init__(self, a, left, right):
+        self.a = a
         self.left = left
         self.right = right
 
@@ -23,13 +26,12 @@ class LeafNode:
         self.probability = probability
 
 
-def readDataFile (fname):
+def readDataFile(fname):
 
     print("Reading data from file " + fname)
     tempf = open(fname, "r")
     file = tempf.read().splitlines()
     tempf.close()
-
 
     global categories
     for token in file[0].split("\t"):
@@ -53,7 +55,7 @@ def readInstances(file):
         tokens = file[line].split("\t")
         values = []
         for i in range(1, len(tokens)):
-            values.append(tokens[i]=='true')
+            values.append(tokens[i] == 'true')
         global categories
         for x in range(len(categories)):
             if categories[x] == tokens[0]:
@@ -67,11 +69,17 @@ def readInstances(file):
 def buildTree(instances, attributes):
     if len(instances) == 0:
         # find overall most likely class
-        # return LeafNode(class, prob)
-        return 0
-    elif instances:  # if instances are pure (all same class)
-        # return LeafNode(instances[0].category, 1)
-        return 0
+        global allInstances
+        catCount = [0] * len(categories)
+        for i in allInstances:
+            catCount[i.category] += 1
+
+        cat = catCount.index(max(catCount))
+
+        return LeafNode(cat, max(catCount)/len(allInstances))
+
+    elif getImpurity(instances) == 0:  # if instances are pure (all same class)
+        return LeafNode(instances[0].category, 1)
     elif len(attributes) == 0:
         # count instance classes
         # get most common class
@@ -119,6 +127,8 @@ def getImpurity(instances):
             m += 1
         if i.category == 1:
             n += 1
+    if m == 0 or n == 0:
+        return 0
     return (m*n)/(m+n)**2
 
 
@@ -128,26 +138,56 @@ def evaluateInstance(inst, root):
     else:
         i = getAttributeIndex(root.a)
         if inst.values[i]:
-            evaluateInstance(inst, root.left)
+            return evaluateInstance(inst, root.left)
         else:
-            evaluateInstance(inst, root.right)
+            return evaluateInstance(inst, root.right)
 
 
 def getAttributeIndex(attribute):
-    global attributes
-    for i in range(len(attributes)):
-        if attributes[i] == attribute:
+    global allAttributes
+    for i in range(len(allAttributes)):
+        if allAttributes[i] == attribute:
             return i
 
 
+def treeToText(root, indent):
+    result = ""
+    for i in range(indent):
+        result += "\t"
+
+    if isinstance(root, LeafNode):
+        result += "Class " + categories[root.c] + ", prob = " + str(root.probability) + "\n"
+    else:
+        result += root.a + " = " + " True:\n"
+        result += treeToText(root.left, indent+1)
+
+        for i in range(indent):
+            result += "\t"
+        result += root.a + " = " + " False:\n"
+        result += treeToText(root.left, indent + 1)
+
+    return result
+
+
+"""Take args"""
+if len(sys.argv) > 2:
+    trainFile = sys.argv[1]
+    testFile = sys.argv[2]
+else:
+    trainFile = "part2/golf-test.dat"
+    testFile = "part2/golf-training.dat"
+
 """Read training data"""
-trainInstances = readDataFile("part2/golf-training.dat")
+trainInstances = readDataFile(trainFile)
+allInstances = trainInstances.copy()
+allAttributes = attributes.copy()
 
 """Build the tree"""
 dTree = buildTree(trainInstances, attributes)
+print(treeToText(dTree, 0))
 
 """Read testing data"""
-tempf = open("part2/golf-test.dat", "r")
+tempf = open(testFile, "r")
 file = tempf.read().splitlines()
 tempf.close()
 testInstances = readInstances(file)
@@ -161,10 +201,14 @@ for instance in testInstances:
         correct += 1
     predictions.append(p)
 
+print(correct)
+print(predictions)
 """Output the results"""
-file = open("result.txt", "w")
-for pred in predictions:
-    file.write(categories[pred] + "\n")
-file.write(str(correct/len(testInstances)) + "\n")
-file.close()
+# file = open("result.txt", "w")
+# for pred in predictions:
+#     file.write(categories[pred] + "\n")
+# file.write(str(correct/len(testInstances)) + "\n")
+# file.close()
+
+
 sys.exit(0)
