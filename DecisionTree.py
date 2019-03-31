@@ -201,7 +201,7 @@ for instance in testInstances:
         correct += 1
     predictions.append(p)
 
-print(correct)
+print(str(correct) + "/" + str(len(predictions)))
 print(predictions)
 """Output the results"""
 # file = open("result.txt", "w")
