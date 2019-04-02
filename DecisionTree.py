@@ -34,13 +34,13 @@ def readDataFile(fname):
     tempf.close()
 
     global categories
-    for token in file[0].split("\t"):
+    for token in file[0].split():
         categories.append(token)
     numCategories = len(categories)
     print(str(numCategories) + " categories")
 
     global attributes
-    for token in file[1].split("\t"):
+    for token in file[1].split():
         attributes.append(token)
     numAttributes = len(attributes)
     print(str(numAttributes) + " attributes")
@@ -52,7 +52,7 @@ def readInstances(file):
     """in format: class att1 att2 att3 ..."""
     instances = []
     for line in range(2, len(file)):
-        tokens = file[line].split("\t")
+        tokens = file[line].split()
         values = []
         for i in range(1, len(tokens)):
             values.append(tokens[i] == 'true')
@@ -83,8 +83,12 @@ def buildTree(instances, attributes):
     elif len(attributes) == 0:
         # count instance classes
         # get most common class
-        # return LeafNode(categories[i], count/len(instances))
-        return 0
+        catCount = [0] * len(categories)
+        for i in instances:
+            catCount[i.category] += 1
+        cat = catCount.index(max(catCount))
+
+        return LeafNode(cat, max(catCount)/len(allInstances))
     else:
         minImpurity = 2
         bestInstsTrue = []
@@ -115,7 +119,7 @@ def buildTree(instances, attributes):
         attributes.remove(bestAtt)
         left = buildTree(bestInstsTrue, attributes)
         right = buildTree(bestInstsFalse, attributes)
-    return Node(bestAtt, left, right)
+        return Node(bestAtt, left, right)
 
 
 def getImpurity(instances):
@@ -174,8 +178,8 @@ if len(sys.argv) > 2:
     trainFile = sys.argv[1]
     testFile = sys.argv[2]
 else:
-    trainFile = "part2/golf-test.dat"
-    testFile = "part2/golf-training.dat"
+    trainFile = "part2/hepatitis-training.dat"
+    testFile = "part2/hepatitis-test.dat"
 
 """Read training data"""
 trainInstances = readDataFile(trainFile)

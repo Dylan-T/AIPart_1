@@ -6,6 +6,7 @@ if len(sys.argv) > 1:
     trainingText = open(sys.argv[1], "r")
 else:
     trainingText = open("part1/iris-training.txt")
+trainingText = trainingText.read().splitlines()
 
 trainingData = []  # in format [((vector), class), ((vector), class)...((vector), class)]
 for line in trainingText:
@@ -39,7 +40,7 @@ for line in testingText:
     actualClass.append(tokens[4])
 
 """Initialise the value of k"""
-k = 1
+k = 3
 predictions = []
 
 """Do this for each test point"""
@@ -82,3 +83,4 @@ for i in predictions:
     f.write(i + "\n")
 f.write(str(correct) + "/" + str(len(predictions)))
 f.close()
+print(str(correct) + "/" + str(len(predictions)))
