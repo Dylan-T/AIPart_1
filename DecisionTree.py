@@ -90,6 +90,7 @@ def buildTree(instances, attributes):
 
         return LeafNode(cat, max(catCount)/len(allInstances))
     else:
+
         minImpurity = 2
         bestInstsTrue = []
         bestInstsFalse = []
@@ -117,8 +118,10 @@ def buildTree(instances, attributes):
                 bestInstsFalse = fInsts
         """Build subtrees using the remaining attributes"""
         attributes.remove(bestAtt)
-        left = buildTree(bestInstsTrue, attributes)
-        right = buildTree(bestInstsFalse, attributes)
+        leftAtt = attributes.copy()
+        rightAtt = attributes.copy()
+        left = buildTree(bestInstsTrue, leftAtt)
+        right = buildTree(bestInstsFalse, rightAtt)
         return Node(bestAtt, left, right)
 
 
@@ -168,8 +171,7 @@ def treeToText(root, indent):
         for i in range(indent):
             result += "\t"
         result += root.a + " = " + " False:\n"
-        result += treeToText(root.left, indent + 1)
-
+        result += treeToText(root.right, indent + 1)
     return result
 
 
@@ -205,14 +207,8 @@ for instance in testInstances:
         correct += 1
     predictions.append(p)
 
+"""Output the results"""
 print(str(correct) + "/" + str(len(predictions)))
 print(predictions)
-"""Output the results"""
-# file = open("result.txt", "w")
-# for pred in predictions:
-#     file.write(categories[pred] + "\n")
-# file.write(str(correct/len(testInstances)) + "\n")
-# file.close()
-
 
 sys.exit(0)

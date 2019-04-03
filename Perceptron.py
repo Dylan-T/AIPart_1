@@ -3,10 +3,19 @@ import random
 
 
 class Feature:
-    def __init__(self, xcon, ycon, values):
-        self.xcon = xcon
-        self.ycon = ycon
+    def __init__(self, row, col, values):
+        self.row = row
+        self.col = col
         self.values = values
+
+        def calculate(image):
+            sum = 0
+            for i in range(4):
+                if image[row[i]][col[i]]:
+                    sum += 1
+            if sum >= 3:
+                return 1
+            return 0
 
 
 class Perceptron:
@@ -64,10 +73,7 @@ for h in range(50):
     features.append(Feature(xcon, ycon, values))
 
 """calculate feature values on each image"""
-# sum = 0
-# for i in range(4):
-#     if image[feature.xcon[i]][feature.ycon[i]]:
-#         sum += 1
+
 
 """Construct a perceptron that uses the features as inputs"""
 
