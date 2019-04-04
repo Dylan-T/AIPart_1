@@ -8,11 +8,11 @@ else:
     trainingText = open("part1/iris-training.txt")
 trainingText = trainingText.read().splitlines()
 
-trainingData = []  # in format [((vector), class), ((vector), class)...((vector), class)]
+trainingData = []  # in format [[[vector], class], ((vector), class)...((vector), class)]
 for line in trainingText:
     tokens = line.split()
     if len(tokens) == 5:
-        trainingData.append(((float(tokens[0]), float(tokens[1]), float(tokens[2]), float(tokens[3])), tokens[4]))
+        trainingData.append([[float(tokens[0]), float(tokens[1]), float(tokens[2]), float(tokens[3])], tokens[4]])
 
 """Find the dimension ranges"""
 rMax = [trainingData[0][0][0], trainingData[0][0][1], trainingData[0][0][2], trainingData[0][0][3]]
@@ -40,7 +40,7 @@ for line in testingText:
     actualClass.append(tokens[4])
 
 """Initialise the value of k"""
-k = 3
+k = 1
 predictions = []
 
 """Do this for each test point"""
@@ -73,14 +73,17 @@ for test in range(len(testingData)):
     predictions.append(max(classes, key=classes.get))
 
 correct = 0
+print("| Actual : Prediction |")
 for i in range(len(predictions)):
+    print("| " + actualClass[i] + " : " + predictions[i] + " |")
     if predictions[i] == actualClass[i]:
         correct += 1
+print("Correct: " + str(correct) + "/" + str(len(predictions)))
 
 """write predictions to a txt file"""
-f = open("resultsK"+str(k)+".txt", "w+")
-for i in predictions:
-    f.write(i + "\n")
-f.write(str(correct) + "/" + str(len(predictions)))
-f.close()
-print(str(correct) + "/" + str(len(predictions)))
+# f = open("resultsK"+str(k)+".txt", "w+")
+# for i in predictions:
+#     f.write(i + "\n")
+# f.write(str(correct) + "/" + str(len(predictions)))
+# f.close()
+#
